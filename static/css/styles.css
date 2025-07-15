@@ -1,0 +1,211 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+/* Root Variables for Light and Dark Mode */
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #6c757d;
+    --danger-color: #dc3545;
+    --background-color: #ffffff;
+    --text-color: #333333;
+    --card-background: #ffffff;
+    --border-color: #dddddd;
+}
+
+/* Dark Mode Variables */
+body.dark-mode {
+    --primary-color: #1d3557;
+    --secondary-color: #457b9d;
+    --danger-color: #e63946;
+    --background-color: #121212;
+    --text-color: #f1f1f1;
+    --card-background: #1e1e1e;
+    --border-color: #333333;
+}
+
+/* Global Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Navbar */
+.navbar {
+    background-color: var(--primary-color);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+    margin-left: 1rem;
+    font-weight: 600;
+}
+
+.navbar a:hover {
+    text-decoration: underline;
+}
+
+/* Toggle Button for Light/Dark Mode */
+.toggle-btn {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.toggle-btn:hover {
+    background-color: var(--primary-color);
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    background-color: var(--primary-color);
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-secondary {
+    background-color: var(--secondary-color);
+}
+
+.btn-danger {
+    background-color: var(--danger-color);
+}
+
+.btn:hover {
+    background-color: var(--secondary-color);
+}
+
+.btn-danger:hover {
+    background-color: var(--danger-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--primary-color);
+}
+
+/* Forms */
+form {
+    background: var(--card-background);
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+}
+
+form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+form input, form select, form textarea {
+    width: 100%;
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 1rem;
+    background-color: var(--card-background);
+    color: var(--text-color);
+}
+
+form button {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Cards */
+.card {
+    background: var(--card-background);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
+}
+
+.card-header {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.card-body {
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+/* Footer */
+footer {
+    background-color: var(--primary-color);
+    color: white;
+    text-align: center;
+    padding: 1rem 0;
+    margin-top: 2rem;
+    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Lists */
+ul.course-list, ul.resource-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+ul.course-list li, ul.resource-list li {
+    background: var(--card-background);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--border-color);
+}
+
+ul.course-list li .course-info, ul.resource-list li .resource-info {
+    flex: 1;
+}
+
+ul.course-list li .course-actions, ul.resource-list li .resource-actions {
+    display: flex;
+    gap: 10px;
+}

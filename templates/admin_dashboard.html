@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="dashboard-hero">
+        <nav class="navbar">
+            <a href="/">Home</a>
+            <a href="/login">Login</a>
+            <a href="/register">Register</a>
+            <button class="toggle-btn" id="darkModeToggle">Switch to Dark Mode</button>
+        </nav>
+        
+        <div class="container">
+            <h1>Welcome, Admin {{ current_user.username }}</h1>
+            <p>Manage courses and resources for the university.</p>
+            <a href="/logout" class="btn btn-secondary">Logout</a>
+        </div>
+    </header>
+    <main class="container">
+        <!-- Add Course Section -->
+        <section class="add-course-section">
+            <h2>Add a New Course</h2>
+            <form method="POST" action="/admin/add_course" class="form">
+                <input type="text" name="name" placeholder="Course Name" required>
+                <textarea name="description" placeholder="Course Description" rows="3" required></textarea>
+                <input type="text" name="instructor" placeholder="Instructor Name" required>
+                <input type="number" name="credits" placeholder="Credits" required>
+                <input type="text" name="semester" placeholder="Semester" required>
+                <button type="submit" class="btn">Add Course</button>
+            </form>
+        </section>
+
+        <!-- Manage Courses Section -->
+        <section class="courses-section">
+            <h2>Manage Courses</h2>
+            <ul class="course-list">
+                {% for course in courses %}
+                <li>
+                    <div class="course-info">
+                        <strong>{{ course[1] }}</strong> (Instructor: {{ course[3] }})
+                        <p>{{ course[2] }}</p>
+                        <p><strong>Credits:</strong> {{ course[4] }} | <strong>Semester:</strong> {{ course[5] }}</p>
+                        <p><strong>Enrolled Students:</strong> {{ course[6] }}</p>
+                    </div>
+                    <div class="course-actions">
+                        <form method="POST" action="/admin/delete_course/{{ course[0] }}">
+                            <button type="submit" class="btn btn-danger">Delete Course</button>
+                        </form>
+                        <a href="/admin/upload_resource/{{ course[0] }}" class="btn btn-secondary">Upload Resources</a>
+                        <a href="/resources/{{ course[0] }}" class="btn btn-secondary">View Resources</a>
+                        <a href="/admin/edit_course/{{ course[0] }}" class="btn btn-primary">Edit Course</a> <!-- New Edit Button -->
+                    </div>
+                    
+                </li>
+                {% else %}
+                <p>No courses available.</p>
+                {% endfor %}
+            </ul>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2025 Course Hub | All Rights Reserved</p>
+    </footer>
+</body>
+</html>
+
+
+<script>
+    // Get the toggle button
+    const darkModeToggle = document.getElementById('darkModeToggle');
+
+    // Check the user's saved preference and apply it
+    document.addEventListener('DOMContentLoaded', () => {
+        const darkMode = localStorage.getItem('darkMode');
+        if (darkMode === 'enabled') {
+            document.body.classList.add('dark-mode');
+            darkModeToggle.textContent = 'Switch to Light Mode';
+        } else {
+            darkModeToggle.textContent = 'Switch to Dark Mode';
+        }
+    });
+
+    // Add an event listener to the toggle button
+    darkModeToggle.addEventListener('click', () => {
+        const isDarkMode = document.body.classList.toggle('dark-mode');
+
+        if (isDarkMode) {
+            // Save the user's preference
+            localStorage.setItem('darkMode', 'enabled');
+            darkModeToggle.textContent = 'Switch to Light Mode';
+        } else {
+            // Remove the user's preference
+            localStorage.setItem('darkMode', 'disabled');
+            darkModeToggle.textContent = 'Switch to Dark Mode';
+        }
+    });
+</script>

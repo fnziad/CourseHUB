@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="dashboard-hero">
+        <nav class="navbar">
+            <a href="/">Home</a>
+            <a href="/login">Login</a>
+            <a href="/register">Register</a>
+            <button class="toggle-btn" id="darkModeToggle">Switch to Dark Mode</button>
+        </nav>
+        
+        <div class="container">
+            <h1>Welcome, {{ current_user.username }}</h1>
+            <p>Manage your courses and resources here.</p>
+            <a href="/logout" class="btn btn-secondary">Logout</a>
+        </div>
+    </header>
+    <main class="container">
+        <!-- Search Bar -->
+        <section class="search-section">
+            <form method="GET" action="/student_dashboard" class="search-form">
+                <input type="text" name="search" placeholder="Search courses..." value="{{ request.args.get('search', '') }}">
+                <button type="submit" class="btn">Search</button>
+            </form>
+        </section>
+
+        <!-- Available Courses -->
+        <section class="courses-section">
+            <h2>Available Courses</h2>
+            <ul class="course-list">
+                {% for course in available_courses %}
+                <li>
+                    <div class="course-info">
+                        <strong>{{ course[1] }}</strong> - <span>{{ course[3] }}</span>
+                        <p>{{ course[2] }}</p>
+                    </div>
+                    <form method="POST" action="/enroll/{{ course[0] }}">
+                        <button type="submit" class="btn btn-secondary">Enroll</button>
+                    </form>
+                </li>
+                {% else %}
+                <p>No available courses found.</p>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <!-- Enrolled Courses -->
+        <section class="courses-section">
+            <h2>Your Enrolled Courses</h2>
+            <ul class="course-list">
+                {% for course in enrolled_courses %}
+                <li>
+                    <div class="course-info">
+                        <strong>{{ course[1] }}</strong>
+                    </div>
+                    <div class="course-actions">
+                        <form method="POST" action="/unenroll/{{ course[0] }}">
+                            <button type="submit" class="btn btn-danger">Unenroll</button>
+                        </form>
+                        <a href="/resources/{{ course[0] }}" class="btn btn-secondary">View Resources</a>
+
+                    </div>
+                </li>
+                {% else %}
+                <p>You are not enrolled in any courses.</p>
+                {% endfor %}
+            </ul>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2025 Course Hub | All Rights Reserved</p>
+    </footer>
+</body>
+</html>
+
+
+<script>
+    // Get the toggle button
+    const darkModeToggle = document.getElementById('darkModeToggle');
+
+    // Check the user's saved preference and apply it
+    document.addEventListener('DOMContentLoaded', () => {
+        const darkMode = localStorage.getItem('darkMode');
+        if (darkMode === 'enabled') {
+            document.body.classList.add('dark-mode');
+            darkModeToggle.textContent = 'Switch to Light Mode';
+        } else {
+            darkModeToggle.textContent = 'Switch to Dark Mode';
+        }
+    });
+
+    // Add an event listener to the toggle button
+    darkModeToggle.addEventListener('click', () => {
+        const isDarkMode = document.body.classList.toggle('dark-mode');
+
+        if (isDarkMode) {
+            // Save the user's preference
+            localStorage.setItem('darkMode', 'enabled');
+            darkModeToggle.textContent = 'Switch to Light Mode';
+        } else {
+            // Remove the user's preference
+            localStorage.setItem('darkMode', 'disabled');
+            darkModeToggle.textContent = 'Switch to Dark Mode';
+        }
+    });
+</script>

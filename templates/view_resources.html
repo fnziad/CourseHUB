@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Resources</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="dashboard-hero">
+        <nav class="navbar">
+            <a href="/">Home</a>
+            <a href="/login">Login</a>
+            <a href="/register">Register</a>
+            <button class="toggle-btn" id="darkModeToggle">Switch to Dark Mode</button>
+        </nav>
+        
+        <div class="container">
+            <h1>Resources for Course: {{ course_name }}</h1>
+            <p>Access study materials and resources for this course.</p>
+            <a href="{{ back_to_dashboard }}" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </header>
+    <main class="container">
+        <!-- Resources List Section -->
+        <section class="resources-section">
+            <h2>Available Resources</h2>
+            <ul class="resource-list">
+                {% for resource in resources %}
+                <li>
+                    <div class="resource-info">
+                        <strong>{{ resource[2] }}</strong> - 
+                        <a href="{{ resource[3] }}" target="_blank" class="btn btn-link">Open Link</a>
+                    </div>
+                </li>
+                {% else %}
+                <p>No resources available for this course.</p>
+                {% endfor %}
+            </ul>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2025 Course Hub | All Rights Reserved</p>
+    </footer>
+</body>
+</html>
+
+
+<script>
+    // Get the toggle button
+    const darkModeToggle = document.getElementById('darkModeToggle');
+
+    // Check the user's saved preference and apply it
+    document.addEventListener('DOMContentLoaded', () => {
+        const darkMode = localStorage.getItem('darkMode');
+        if (darkMode === 'enabled') {
+            document.body.classList.add('dark-mode');
+            darkModeToggle.textContent = 'Switch to Light Mode';
+        } else {
+            darkModeToggle.textContent = 'Switch to Dark Mode';
+        }
+    });
+
+    // Add an event listener to the toggle button
+    darkModeToggle.addEventListener('click', () => {
+        const isDarkMode = document.body.classList.toggle('dark-mode');
+
+        if (isDarkMode) {
+            // Save the user's preference
+            localStorage.setItem('darkMode', 'enabled');
+            darkModeToggle.textContent = 'Switch to Light Mode';
+        } else {
+            // Remove the user's preference
+            localStorage.setItem('darkMode', 'disabled');
+            darkModeToggle.textContent = 'Switch to Dark Mode';
+        }
+    });
+</script>
