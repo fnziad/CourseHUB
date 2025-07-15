@@ -5,6 +5,7 @@ A comprehensive web-based course management system built with Flask that allows 
 ## Features
 
 ### For Students
+
 - **User Registration & Authentication**: Secure account creation and login system
 - **Course Browsing**: View all available courses with descriptions and instructor information
 - **Course Search**: Search for courses by name or description
@@ -13,12 +14,14 @@ A comprehensive web-based course management system built with Flask that allows 
 - **Personal Dashboard**: View enrolled courses and manage course participation
 
 ### For Administrators
+
 - **Course Management**: Add, edit, and delete courses
 - **Resource Management**: Upload and manage course resources (links, materials)
 - **Student Analytics**: View enrollment statistics for each course
 - **Admin Dashboard**: Comprehensive overview of all courses and student enrollments
 
 ### General Features
+
 - **Dark/Light Mode**: Toggle between light and dark themes
 - **Responsive Design**: Mobile-friendly interface
 - **Flash Messages**: Real-time feedback for user actions
@@ -36,6 +39,7 @@ A comprehensive web-based course management system built with Flask that allows 
 ## Installation
 
 ### Prerequisites
+
 - Python 3.7+
 - MySQL Server
 - XAMPP (optional, for local MySQL setup)
@@ -44,22 +48,25 @@ A comprehensive web-based course management system built with Flask that allows 
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/CourseHUB.git
+   git clone https://github.com/fnziad/CourseHUB.git
    cd CourseHUB
    ```
 
 2. **Create a virtual environment**
+
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
 3. **Install dependencies**
+
    ```bash
    pip install flask flask-mysqldb flask-bcrypt flask-login
    ```
 
 4. **Database Setup**
+
    - Start MySQL server (via XAMPP or standalone)
    - Create a database named `university_course_hub`
    - Create the required tables:
@@ -104,7 +111,9 @@ A comprehensive web-based course management system built with Flask that allows 
    ```
 
 5. **Configure database connection**
+
    - Update `config.py` with your MySQL connection details:
+
    ```python
    class Config:
        SECRET_KEY = 'your_secret_key_here'
@@ -116,6 +125,7 @@ A comprehensive web-based course management system built with Flask that allows 
    ```
 
 6. **Run the application**
+
    ```bash
    python app.py
    ```
@@ -126,11 +136,13 @@ A comprehensive web-based course management system built with Flask that allows 
 ## Usage
 
 ### First Time Setup
+
 1. Register as an admin user to manage courses
 2. Register as a student to enroll in courses
 3. Log in with your credentials
 
 ### Student Workflow
+
 1. Register for a student account
 2. Browse available courses
 3. Use the search functionality to find specific courses
@@ -138,6 +150,7 @@ A comprehensive web-based course management system built with Flask that allows 
 5. Access course resources from your dashboard
 
 ### Admin Workflow
+
 1. Register for an admin account
 2. Add new courses with details (name, description, instructor, credits, semester)
 3. Upload resources for each course
@@ -171,9 +184,11 @@ CourseHUB/
 ## Demo Mode
 
 For testing without database setup, use the demo version:
+
 ```bash
 python app_demo.py
 ```
+
 This runs on port 5001 and uses mock data instead of a MySQL database.
 
 ## Contributing
@@ -209,8 +224,10 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Contact
 
 For questions or support, please contact:
+
 - Email: your-email@example.com
-- GitHub: [Your GitHub Profile](https://github.com/yourusername)
+- GitHub: [fnziad](https://github.com/fnziad)
 
 ---
+
 © 2025 CourseHUB - All Rights Reserved
