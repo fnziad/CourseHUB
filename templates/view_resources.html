@@ -30,8 +30,8 @@
                 {% for resource in resources %}
                 <li>
                     <div class="resource-info">
-                        <strong>{{ resource[2] }}</strong> - 
-                        <a href="{{ resource[3] }}" target="_blank" class="btn btn-link">Open Link</a>
+                        <strong>{{ resource['name'] }}</strong> - 
+                        <a href="{{ resource['link'] }}" target="_blank" class="btn btn-link">Open Link</a>
                     </div>
                 </li>
                 {% else %}

@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_mysqldb import MySQL
+from MySQLdb.cursors import DictCursor
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.utils import secure_filename
@@ -13,20 +14,24 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
+from flask_mail import Mail, Message
+mail = Mail(app)
+
 # Models and User Login Management
 class User(UserMixin):
-    def __init__(self, id, username, role):
+    def __init__(self, id, username, role, email):
         self.id = id
         self.username = username
         self.role = role
+        self.email = email
 
 @login_manager.user_loader
 def load_user(user_id):
-    cur = mysql.connection.cursor()
+    cur = mysql.connection.cursor(DictCursor)
     cur.execute("SELECT * FROM Users WHERE id = %s", (user_id,))
     user_data = cur.fetchone()
     if user_data:
-        return User(id=user_data['id'], username=user_data['username'], role=user_data['role'])
+        return User(id=user_data['id'], username=user_data['username'], role=user_data['role'], email=user_data['username'])
     return None
 
 # Home Route
@@ -43,7 +48,7 @@ def register():
         role = request.form['role']  # Either 'student' or 'admin'
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-        cur = mysql.connection.cursor()
+        cur = mysql.connection.cursor(DictCursor)
         cur.execute("INSERT INTO Users (username, password, role) VALUES (%s, %s, %s)", (username, hashed_password, role))
         mysql.connection.commit()
         flash('Registration successful! Please log in.', 'success')
@@ -57,11 +62,11 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        cur = mysql.connection.cursor()
+        cur = mysql.connection.cursor(DictCursor)
         cur.execute("SELECT * FROM Users WHERE username = %s", (username,))
         user_data = cur.fetchone()
         if user_data and bcrypt.check_password_hash(user_data['password'], password):
-            user = User(id=user_data['id'], username=user_data['username'], role=user_data['role'])
+            user = User(id=user_data['id'], username=user_data['username'], role=user_data['role'], email=user_data['username'])
             login_user(user)
             if user.role == 'admin':
                 return redirect(url_for('admin_dashboard'))
@@ -86,7 +91,7 @@ def student_dashboard():
         flash("Access denied.", "danger")
         return redirect(url_for('home'))
 
-    cur = mysql.connection.cursor()
+    cur = mysql.connection.cursor(DictCursor)
     
     # Search functionality
     search_query = request.args.get('search')
@@ -118,7 +123,7 @@ def search_courses():
     min_credits = request.args.get('min_credits', type=int)
     max_credits = request.args.get('max_credits', type=int)
     
-    cur = mysql.connection.cursor()
+    cur = mysql.connection.cursor(DictCursor)
     sql = 'SELECT * FROM Courses WHERE 1=1'
     params = []
     
@@ -143,11 +148,20 @@ def search_courses():
     return jsonify(courses)
 
 
+def send_enrollment_email(user_email, course_name):
+    try:
+        msg = Message('Course Enrollment Confirmation',
+                      recipients=[user_email])
+        msg.body = f'You have successfully enrolled in {course_name}. Check your dashboard for course materials and resources.'
+        mail.send(msg)
+    except Exception as e:
+        print(f'Failed to send email: {e}')
+
 # Enroll in a Course
 @app.route('/enroll/<int:course_id>', methods=['POST'])
 @login_required
 def enroll(course_id):
-    cur = mysql.connection.cursor()
+    cur = mysql.connection.cursor(DictCursor)
 
     # Check if the student is already enrolled in the course
     cur.execute("SELECT * FROM Enrollments WHERE student_id = %s AND course_id = %s", (current_user.id, course_id))
@@ -160,6 +174,14 @@ def enroll(course_id):
             # Enroll the student in the course
             cur.execute("INSERT INTO Enrollments (student_id, course_id) VALUES (%s, %s)", (current_user.id, course_id))
             mysql.connection.commit()
+            
+            # Get course name for the email
+            cur.execute("SELECT name FROM Courses WHERE id = %s", (course_id,))
+            course_name = cur.fetchone()['name']
+
+            # Send enrollment confirmation email
+            send_enrollment_email(current_user.email, course_name)
+            
             flash("Successfully enrolled in the course!", "success")
         except Exception as e:
             flash(f"An error occurred: {str(e)}", "danger")
@@ -173,7 +195,7 @@ def enroll(course_id):
 @app.route('/unenroll/<int:course_id>', methods=['POST'])
 @login_required
 def unenroll(course_id):
-    cur = mysql.connection.cursor()
+    cur = mysql.connection.cursor(DictCursor)
     cur.execute("DELETE FROM Enrollments WHERE student_id = %s AND course_id = %s", (current_user.id, course_id))
     mysql.connection.commit()
     flash("Successfully unenrolled from the course.", "warning")
@@ -184,10 +206,10 @@ def unenroll(course_id):
 @login_required
 def admin_dashboard():
     if current_user.role != 'admin':
-        flash("Access denied.", "danger")
+        flash("Access denied. Admins only.", "danger")
         return redirect(url_for('home'))
 
-    cur = mysql.connection.cursor()
+    cur = mysql.connection.cursor(DictCursor)
     cur.execute("SELECT * FROM Courses")
     courses = cur.fetchall()
 
@@ -217,7 +239,7 @@ def add_course():
         credits = request.form['credits']
         semester = request.form['semester']
 
-        cur = mysql.connection.cursor()
+        cur = mysql.connection.cursor(DictCursor)
         cur.execute("""
             INSERT INTO Courses (name, description, instructor, credits, semester)
             VALUES (%s, %s, %s, %s, %s)
@@ -236,7 +258,7 @@ def delete_course(course_id):
         flash("Access denied!", "danger")
         return redirect(url_for('dashboard'))
     
-    cur = mysql.connection.cursor()
+    cur = mysql.connection.cursor(DictCursor)
     try:
         # First, delete all enrollments associated with the course
         cur.execute("DELETE FROM Enrollments WHERE course_id = %s", (course_id,))
@@ -260,7 +282,7 @@ def upload_resource(course_id):
     if current_user.role != 'admin':
         return redirect(url_for('dashboard'))
     
-    cur = mysql.connection.cursor()
+    cur = mysql.connection.cursor(DictCursor)
     cur.execute("SELECT name FROM Courses WHERE id = %s", (course_id,))
     course_name = cur.fetchone()
 
@@ -277,7 +299,7 @@ def upload_resource(course_id):
     
     cur.execute("SELECT * FROM Resources WHERE course_id = %s", (course_id,))
     resources = cur.fetchall()
-    return render_template('admin_upload_resource.html', course_id=course_id, course_name=course_name[0], resources=resources)
+    return render_template('admin_upload_resource.html', course_id=course_id, course_name=course_name['name'], resources=resources)
 
 
 
@@ -287,9 +309,9 @@ def upload_resource(course_id):
 def edit_course(course_id):
     if current_user.role != 'admin':
         flash("Access denied.", "danger")
-        return redirect(url_for('admin_dashboard'))
+        return redirect(url_for('home'))
 
-    cur = mysql.connection.cursor()
+    cur = mysql.connection.cursor(DictCursor)
 
     if request.method == 'POST':
         # Get updated course details from the form
@@ -330,7 +352,7 @@ def edit_course(course_id):
 @app.route('/resources/<int:course_id>')
 @login_required
 def view_resources(course_id):
-    cur = mysql.connection.cursor()
+    cur = mysql.connection.cursor(DictCursor)
     
     # Fetch course name
     cur.execute("SELECT name FROM Courses WHERE id = %s", (course_id,))
@@ -338,7 +360,7 @@ def view_resources(course_id):
     if not course:
         flash("Course not found!", "danger")
         return redirect(url_for('dashboard' if current_user.role == 'student' else 'admin_dashboard'))
-    course_name = course[0]
+    course_name = course['name']
 
     # Fetch resources for the course
     cur.execute("SELECT * FROM Resources WHERE course_id = %s", (course_id,))
@@ -362,7 +384,7 @@ def delete_resource(resource_id, course_id):
         flash("Access denied!", "danger")
         return redirect(url_for('admin_dashboard'))
     
-    cur = mysql.connection.cursor()
+    cur = mysql.connection.cursor(DictCursor)
     try:
         # Delete the resource by ID
         cur.execute("DELETE FROM resources WHERE id = %s", (resource_id,))
@@ -375,6 +397,69 @@ def delete_resource(resource_id, course_id):
 
     # Redirect back to the resource management page for the same course
     return redirect(url_for('upload_resource', course_id=course_id))
+
+
+@app.route('/api/add_review', methods=['POST'])
+@login_required
+def add_review():
+    course_id = request.form.get('course_id')
+    rating = request.form.get('rating')
+    comment = request.form.get('comment')
+    
+    cur = mysql.connection.cursor(DictCursor)
+    try:
+        cur.execute('INSERT INTO Reviews (course_id, user_id, rating, comment) VALUES (%s, %s, %s, %s)',
+                   (course_id, current_user.id, rating, comment))
+        mysql.connection.commit()
+        return jsonify({'success': True, 'message': 'Review added successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+@app.route('/api/course_reviews/<int:course_id>')
+@login_required
+def get_course_reviews(course_id):
+    cur = mysql.connection.cursor(DictCursor)
+    cur.execute('''SELECT r.*, u.username, r.created_at 
+                   FROM Reviews r 
+                   JOIN Users u ON r.user_id = u.id 
+                   WHERE r.course_id = %s 
+                   ORDER BY r.created_at DESC''', (course_id,))
+    reviews = cur.fetchall()
+    
+    cur.execute('SELECT AVG(rating) as avg_rating, COUNT(*) as total_reviews FROM Reviews WHERE course_id = %s', (course_id,))
+    stats = cur.fetchone()
+    
+    return jsonify({'reviews': reviews, 'stats': stats})
+
+
+@app.route('/api/update_progress', methods=['POST'])
+@login_required
+def update_progress():
+    course_id = request.form.get('course_id')
+    progress = request.form.get('progress', type=int)
+    
+    cur = mysql.connection.cursor(DictCursor)
+    cur.execute('''INSERT INTO CourseProgress (user_id, course_id, progress_percentage, completed)
+                   VALUES (%s, %s, %s, %s)
+                   ON DUPLICATE KEY UPDATE 
+                   progress_percentage = %s, 
+                   completed = %s,
+                   last_accessed = CURRENT_TIMESTAMP''',
+               (current_user.id, course_id, progress, progress >= 100, progress, progress >= 100))
+    mysql.connection.commit()
+    return jsonify({'success': True, 'progress': progress})
+
+@app.route('/api/my_progress')
+@login_required
+def my_progress():
+    cur = mysql.connection.cursor(DictCursor)
+    cur.execute('''SELECT cp.*, c.name as course_name, c.instructor
+                   FROM CourseProgress cp
+                   JOIN Courses c ON cp.course_id = c.id
+                   WHERE cp.user_id = %s
+                   ORDER BY cp.last_accessed DESC''', (current_user.id,))
+    progress_data = cur.fetchall()
+    return jsonify(progress_data)
 
 
 if __name__ == '__main__':

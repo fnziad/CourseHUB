@@ -41,11 +41,11 @@
                 {% for resource in resources %}
                 <li>
                     <div class="resource-info">
-                        <strong>{{ resource[2] }}</strong> <!-- Resource Name -->
-                        <p><a href="{{ resource[3] }}" target="_blank">View Resource</a></p> <!-- Resource Link -->
+                        <strong>{{ resource['name'] }}</strong> <!-- Resource Name -->
+                        <p><a href="{{ resource['link'] }}" target="_blank">View Resource</a></p> <!-- Resource Link -->
                     </div>
                     <div class="resource-actions">
-                        <form action="{{ url_for('delete_resource', resource_id=resource[0], course_id=course_id) }}" method="POST" style="display:inline;">
+                        <form action="{{ url_for('delete_resource', resource_id=resource['id'], course_id=course_id) }}" method="POST" style="display:inline;">
                             <button type="submit" class="btn btn-danger">Delete</button>
                         </form>
                     </div>

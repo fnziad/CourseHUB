@@ -3,111 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard</title>
+    <title>Student Dashboard - CourseHUB</title>
     <link rel="stylesheet" href="/static/css/styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header class="dashboard-hero">
-        <nav class="navbar">
-            <a href="/">Home</a>
-            <a href="/login">Login</a>
-            <a href="/register">Register</a>
-            <button class="toggle-btn" id="darkModeToggle">Switch to Dark Mode</button>
-        </nav>
-        
+    <!-- Navbar -->
+    <nav class="navbar">
         <div class="container">
-            <h1>Welcome, {{ current_user.username }}</h1>
-            <p>Manage your courses and resources here.</p>
-            <a href="/logout" class="btn btn-secondary">Logout</a>
+            <div class="navbar-content">
+                <a href="/" class="navbar-brand">🎓 CourseHUB</a>
+                <div class="navbar-links">
+                    <a href="/student_dashboard">Dashboard</a>
+                    <a href="/logout">Logout</a>
+                    <button class="toggle-btn" id="darkModeToggle">🌙 Dark Mode</button>
+                </div>
+            </div>
         </div>
-    </header>
-    <main class="container">
-        <!-- Search Bar -->
-        <section class="search-section">
-            <form method="GET" action="/student_dashboard" class="search-form">
-                <input type="text" name="search" placeholder="Search courses..." value="{{ request.args.get('search', '') }}">
-                <button type="submit" class="btn">Search</button>
-            </form>
-        </section>
+    </nav>
 
-        <!-- Available Courses -->
-        <section class="courses-section">
-            <h2>Available Courses</h2>
-            <ul class="course-list">
-                {% for course in available_courses %}
-                <li>
-                    <div class="course-info">
-                        <strong>{{ course[1] }}</strong> - <span>{{ course[3] }}</span>
-                        <p>{{ course[2] }}</p>
-                    </div>
-                    <form method="POST" action="/enroll/{{ course[0] }}">
-                        <button type="submit" class="btn btn-secondary">Enroll</button>
-                    </form>
-                </li>
-                {% else %}
-                <p>No available courses found.</p>
-                {% endfor %}
-            </ul>
-        </section>
+    <!-- Main Dashboard -->
+    <main class="dashboard">
+        <div class="container">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
 
-        <!-- Enrolled Courses -->
-        <section class="courses-section">
-            <h2>Your Enrolled Courses</h2>
-            <ul class="course-list">
-                {% for course in enrolled_courses %}
-                <li>
-                    <div class="course-info">
-                        <strong>{{ course[1] }}</strong>
-                    </div>
-                    <div class="course-actions">
-                        <form method="POST" action="/unenroll/{{ course[0] }}">
-                            <button type="submit" class="btn btn-danger">Unenroll</button>
-                        </form>
-                        <a href="/resources/{{ course[0] }}" class="btn btn-secondary">View Resources</a>
+            <!-- Dashboard Header -->
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">Welcome back, {{ current_user.username }}! 👋</h1>
+                <p class="dashboard-subtitle">Explore courses, enroll in new programs, and track your learning journey</p>
+            </div>
 
+            <!-- Search Bar -->
+            <div class="search-container">
+                <form method="GET" action="/student_dashboard" class="search-bar">
+                    <input type="text" name="search" placeholder="🔍 Search for courses..." value="{{ request.args.get('search', '') }}">
+                    <button type="submit" class="btn">Search</button>
+                </form>
+            </div>
+
+            <!-- Enrolled Courses Section -->
+            {% if enrolled_courses %}
+            <section style="margin-top: 3rem;">
+                <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1.5rem;">📚 Your Enrolled Courses</h2>
+                <div class="courses-grid">
+                    {% for course in enrolled_courses %}
+                    <div class="course-card">
+                        <div class="course-card-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <div class="course-card-title">{{ course['name'] if course.name else course[1] }}</div>
+                        </div>
+                        <div class="course-card-body">
+                            <p style="color: var(--text-secondary); font-weight: 500; margin-bottom: 1rem;">✅ You're enrolled in this course</p>
+                        </div>
+                        <div class="course-card-footer">
+                            <a href="/resources/{{ course['id'] if course.id else course[0] }}" class="btn btn-sm">📖 View Resources</a>
+                            <form method="POST" action="/unenroll/{{ course['id'] if course.id else course[0] }}" style="margin: 0;">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to unenroll?')">Unenroll</button>
+                            </form>
+                        </div>
                     </div>
-                </li>
-                {% else %}
-                <p>You are not enrolled in any courses.</p>
-                {% endfor %}
-            </ul>
-        </section>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            <!-- Available Courses Section -->
+            <section style="margin-top: 3rem;">
+                <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1.5rem;">🌟 Discover New Courses</h2>
+                <div class="courses-grid">
+                    {% for course in available_courses %}
+                    <div class="course-card">
+                        <div class="course-card-header">
+                            <div class="course-card-title">{{ course['name'] if course.name else course[1] }}</div>
+                            <div class="course-card-meta">
+                                <span>👨‍🏫 {{ course['instructor'] if course.instructor else course[3] }}</span>
+                                <span>📅 {{ course['semester'] if course.semester else course[5] }}</span>
+                            </div>
+                        </div>
+                        <div class="course-card-body">
+                            <p class="course-card-description">{{ (course['description'] if course.description else course[2])[:150] }}...</p>
+                            <p style="color: var(--primary-color); font-weight: 600; margin-top: 0.5rem;">
+                                🎯 {{ course['credits'] if course.credits else course[4] }} Credits
+                            </p>
+                        </div>
+                        <div class="course-card-footer">
+                            <form method="POST" action="/enroll/{{ course['id'] if course.id else course[0] }}" style="flex: 1; margin: 0;">
+                                <button type="submit" class="btn" style="width: 100%;">✨ Enroll Now</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="card" style="grid-column: 1/-1;">
+                        <p style="text-align: center; color: var(--text-secondary); font-size: 1.125rem;">
+                            🔍 No courses found. Try adjusting your search.
+                        </p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
     </main>
+
+    <!-- Footer -->
     <footer>
-        <p>&copy; 2025 Course Hub | All Rights Reserved</p>
+        <div class="container">
+            <p>© 2025 CourseHUB - Empowering Students Worldwide</p>
+            <p style="font-size: 0.875rem; opacity: 0.8;">Built with ❤️ for better education</p>
+        </div>
     </footer>
+
+    <script>
+        // Dark Mode Toggle
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const darkMode = localStorage.getItem('darkMode');
+            if (darkMode === 'enabled') {
+                document.body.classList.add('dark-mode');
+                darkModeToggle.textContent = '☀️ Light Mode';
+            }
+        });
+
+        darkModeToggle.addEventListener('click', () => {
+            const isDarkMode = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
+            darkModeToggle.textContent = isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode';
+        });
+
+        // Add animation on page load
+        document.querySelectorAll('.course-card').forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.animation = `fadeIn 0.5s ease-out ${index * 0.1}s forwards`;
+        });
+    </script>
 </body>
 </html>
-
-
-<script>
-    // Get the toggle button
-    const darkModeToggle = document.getElementById('darkModeToggle');
-
-    // Check the user's saved preference and apply it
-    document.addEventListener('DOMContentLoaded', () => {
-        const darkMode = localStorage.getItem('darkMode');
-        if (darkMode === 'enabled') {
-            document.body.classList.add('dark-mode');
-            darkModeToggle.textContent = 'Switch to Light Mode';
-        } else {
-            darkModeToggle.textContent = 'Switch to Dark Mode';
-        }
-    });
-
-    // Add an event listener to the toggle button
-    darkModeToggle.addEventListener('click', () => {
-        const isDarkMode = document.body.classList.toggle('dark-mode');
-
-        if (isDarkMode) {
-            // Save the user's preference
-            localStorage.setItem('darkMode', 'enabled');
-            darkModeToggle.textContent = 'Switch to Light Mode';
-        } else {
-            // Remove the user's preference
-            localStorage.setItem('darkMode', 'disabled');
-            darkModeToggle.textContent = 'Switch to Dark Mode';
-        }
-    });
-</script>
