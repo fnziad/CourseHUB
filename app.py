@@ -26,7 +26,7 @@ def load_user(user_id):
     cur.execute("SELECT * FROM Users WHERE id = %s", (user_id,))
     user_data = cur.fetchone()
     if user_data:
-        return User(id=user_data[0], username=user_data[1], role=user_data[3])
+        return User(id=user_data['id'], username=user_data['username'], role=user_data['role'])
     return None
 
 # Home Route
@@ -60,8 +60,8 @@ def login():
         cur = mysql.connection.cursor()
         cur.execute("SELECT * FROM Users WHERE username = %s", (username,))
         user_data = cur.fetchone()
-        if user_data and bcrypt.check_password_hash(user_data[2], password):
-            user = User(id=user_data[0], username=user_data[1], role=user_data[3])
+        if user_data and bcrypt.check_password_hash(user_data['password'], password):
+            user = User(id=user_data['id'], username=user_data['username'], role=user_data['role'])
             login_user(user)
             if user.role == 'admin':
                 return redirect(url_for('admin_dashboard'))
@@ -107,6 +107,40 @@ def student_dashboard():
     enrolled_courses = cur.fetchall()
 
     return render_template('student_dashboard.html', available_courses=available_courses, enrolled_courses=enrolled_courses)
+
+
+@app.route('/api/search_courses', methods=['GET'])
+@login_required
+def search_courses():
+    query = request.args.get('query', '')
+    instructor = request.args.get('instructor', '')
+    semester = request.args.get('semester', '')
+    min_credits = request.args.get('min_credits', type=int)
+    max_credits = request.args.get('max_credits', type=int)
+    
+    cur = mysql.connection.cursor()
+    sql = 'SELECT * FROM Courses WHERE 1=1'
+    params = []
+    
+    if query:
+        sql += ' AND (name LIKE %s OR description LIKE %s)'
+        params.extend([f'%{query}%', f'%{query}%'])
+    if instructor:
+        sql += ' AND instructor LIKE %s'
+        params.append(f'%{instructor}%')
+    if semester:
+        sql += ' AND semester = %s'
+        params.append(semester)
+    if min_credits:
+        sql += ' AND credits >= %s'
+        params.append(min_credits)
+    if max_credits:
+        sql += ' AND credits <= %s'
+        params.append(max_credits)
+    
+    cur.execute(sql, params)
+    courses = cur.fetchall()
+    return jsonify(courses)
 
 
 # Enroll in a Course
